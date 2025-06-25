@@ -7,5 +7,5 @@ urlpatterns = [
     path('books/<int:pk>/', BookDetail.as_view()),
     path('genre/', GenreList.as_view()),
     path('<str:title>/', GenreDetail.as_view()),
-    path('<str:title>/<int:pk>', BookByGenre.as_view())
+    path('<str:title>/books/', BookByGenre.as_view())
 ]

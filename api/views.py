@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .models import Book, Genre
-from .serializer import BookSerializer, GenreSerializer, UserSerializer
+from .serializer import BookSerializer, BookByGenreSerializer, GenreSerializer, UserSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -24,9 +24,16 @@ class BookDetail(RetrieveUpdateDestroyAPIView):
     permission_classes = (IsOwnerOrReadOnly, )
 
 class BookByGenre(ListCreateAPIView):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
+    serializer_class = BookByGenreSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        genre = self.kwargs['title']
+        return Book.objects.filter(genre__title=genre)
+
+    def perform_create(self, serializer):
+        genre = Genre.objects.get(title = self.kwargs['title'])
+        serializer.save(author=self.request.user, genre=genre)
 
 class GenreList(ListCreateAPIView):
     queryset = Genre.objects.all()

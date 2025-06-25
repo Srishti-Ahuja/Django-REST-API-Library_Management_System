@@ -7,6 +7,11 @@ class BookSerializer(serializers.ModelSerializer):
         model = Book
         exclude = ('author',)
 
+class BookByGenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        exclude = ('author','genre',)
+
 class GenreSerializer(serializers.ModelSerializer):
     books = serializers.StringRelatedField(read_only=True, many=True)
 
