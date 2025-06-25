@@ -6,15 +6,27 @@ from .models import Book, Genre
 from .serializer import BookSerializer, GenreSerializer, UserSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from .permissions import IsOwnerOrReadOnly
 
 # Create your views here.
 class BookList(ListCreateAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class BookDetail(RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+    permission_classes = (IsOwnerOrReadOnly, )
+
+class BookByGenre(ListCreateAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
 class GenreList(ListCreateAPIView):
     queryset = Genre.objects.all()

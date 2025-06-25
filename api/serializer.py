@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
-        fields = '__all__'
+        exclude = ('author',)
 
 class GenreSerializer(serializers.ModelSerializer):
     books = serializers.StringRelatedField(read_only=True, many=True)
