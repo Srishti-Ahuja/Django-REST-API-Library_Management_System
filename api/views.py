@@ -11,12 +11,14 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .permissions import IsOwnerOrReadOnly
+from .throttling import BookThrottle, BorrowThrottle
 
 # Create your views here.
 class BookList(ListCreateAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    throttle_classes = (BookThrottle,)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -25,6 +27,7 @@ class BookDetail(RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = (IsOwnerOrReadOnly, )
+    throttle_classes = (BookThrottle,)
 
 class BookByGenre(ListCreateAPIView):
     serializer_class = BookByGenreSerializer
@@ -52,6 +55,7 @@ class BookBorrow(CreateAPIView):
     queryset = Borrow.objects.all()
     serializer_class = BookBorrowSerializer
     permission_classes = (IsAuthenticated,)
+    throttle_classes = (BorrowThrottle, )
 
     def perform_create(self, serializer):
         book = get_object_or_404(Book, pk=self.kwargs['pk'])
@@ -61,6 +65,7 @@ class BookReturn(UpdateAPIView):
     queryset = Borrow.objects.all()
     serializer_class = BookReturnSerializer
     permission_classes = (IsAuthenticated,)
+    throttle_classes = (BorrowThrottle, )
 
     def perform_update(self, serializer):
         serializer.save(returned=True)
