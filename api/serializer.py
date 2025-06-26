@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Book, Genre
+from .models import Book, Genre, Borrow
 from django.contrib.auth.models import User
 
 class BookSerializer(serializers.ModelSerializer):
@@ -18,6 +18,29 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = '__all__'
+
+class BorrowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Borrow
+        fields = '__all__'
+
+class BookBorrowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Borrow
+        exclude = ('book', 'borrower',)
+
+    def save(self, book, borrower):
+        if Borrow.objects.filter(book = book, returned = False).exists():
+            raise serializers.ValidationError('This book is already borrowed')
+        if Borrow.objects.filter(borrower = borrower, returned = False).exists():
+            raise serializers.ValidationError('This user already has 1 book borrowed')
+            
+        return super().save(book=book, borrower=borrower)
+
+class BookReturnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Borrow
+        exclude = ('book', 'borrower', 'returned',)
 
 class UserSerializer(serializers.ModelSerializer):
     password_confirm = serializers.CharField(write_only=True, style={'input_type':'password'})

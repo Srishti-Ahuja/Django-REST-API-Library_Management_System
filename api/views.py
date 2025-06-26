@@ -1,12 +1,15 @@
 from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from .models import Book, Genre
-from .serializer import BookSerializer, BookByGenreSerializer, GenreSerializer, UserSerializer
+from rest_framework.generics import (ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView,
+        UpdateAPIView, ListAPIView)
+from .models import Book, Genre, Borrow
+from .serializer import (BookSerializer, BookByGenreSerializer, GenreSerializer,
+        UserSerializer, BookBorrowSerializer, BookReturnSerializer, BorrowSerializer)
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .permissions import IsOwnerOrReadOnly
 
 # Create your views here.
@@ -32,7 +35,7 @@ class BookByGenre(ListCreateAPIView):
         return Book.objects.filter(genre__title=genre)
 
     def perform_create(self, serializer):
-        genre = Genre.objects.get(title = self.kwargs['title'])
+        genre = get_object_or_404(Genre, title = self.kwargs['title'])
         serializer.save(author=self.request.user, genre=genre)
 
 class GenreList(ListCreateAPIView):
@@ -44,6 +47,27 @@ class GenreDetail(RetrieveUpdateDestroyAPIView):
     serializer_class = GenreSerializer
     lookup_field = 'title__iexact'
     lookup_url_kwarg = 'title'
+
+class BookBorrow(CreateAPIView):
+    queryset = Borrow.objects.all()
+    serializer_class = BookBorrowSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def perform_create(self, serializer):
+        book = get_object_or_404(Book, pk=self.kwargs['pk'])
+        serializer.save(book = book, borrower = self.request.user)
+
+class BookReturn(UpdateAPIView):
+    queryset = Borrow.objects.all()
+    serializer_class = BookReturnSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def perform_update(self, serializer):
+        serializer.save(returned=True)
+
+class BorrowList(ListAPIView):
+    queryset = Borrow.objects.all()
+    serializer_class = BorrowSerializer
 
 @api_view(['POST'])
 def RegistrationView(request):
