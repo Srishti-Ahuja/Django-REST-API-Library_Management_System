@@ -10,6 +10,7 @@ from .serializer import (BookSerializer, BookByGenreSerializer, GenreSerializer,
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.filters import SearchFilter
 from .permissions import IsOwnerOrReadOnly
 from .throttling import BookThrottle, BorrowThrottle
 from .pagination import BorrowlistPagination, BookListPagination
@@ -21,6 +22,8 @@ class BookList(ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     throttle_classes = (BookThrottle,)
     pagination_class = BookListPagination
+    filter_backends = [SearchFilter,]
+    search_fields = ['genre__title', 'author__username', 'title']
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
