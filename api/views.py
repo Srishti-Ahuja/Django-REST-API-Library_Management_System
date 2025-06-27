@@ -12,6 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .permissions import IsOwnerOrReadOnly
 from .throttling import BookThrottle, BorrowThrottle
+from .pagination import BorrowlistPagination, BookListPagination
 
 # Create your views here.
 class BookList(ListCreateAPIView):
@@ -19,6 +20,7 @@ class BookList(ListCreateAPIView):
     serializer_class = BookSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     throttle_classes = (BookThrottle,)
+    pagination_class = BookListPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -73,6 +75,7 @@ class BookReturn(UpdateAPIView):
 class BorrowList(ListAPIView):
     queryset = Borrow.objects.all()
     serializer_class = BorrowSerializer
+    pagination_class = BorrowlistPagination
 
 @api_view(['POST'])
 def RegistrationView(request):
